@@ -23,23 +23,27 @@ fi
 while read DOCK; do
   # Rebuild all containers that changed
   [[ -d $DOCK && ! -L $DOCK ]] || continue
-  pushd "$DOCK"
+  pushd "$DOCK" &> /dev/null
     DOCKER_IMAGE="$DOCKER_ORG/${DOCK//\//:}"
-    echo docker build . -t "$DOCKER_IMAGE"
+    echo "Building Docker image $DOCKER_IMAGE"
+    docker build . -t "$DOCKER_IMAGE"
     if [[ $DOCKER_PUSH ]]; then
-      echo docker push "$DOCKER_IMAGE"
+      docker push "$DOCKER_IMAGE"
     fi
-  popd
+  popd &> /dev/null
 done < <(git diff --name-only $TRAVIS_COMMIT_RANGE | grep / | cut -d/ -f1,2 | sort -u)
 
-while read DOCK; do
-  # Repush all symlinks that changed
-  [[ -L $DOCK ]] || continue
-  DOCKER_IMAGE="$DOCKER_ORG/${DOCK//\//:}"
-  DOCKER_IMAGE_ORIG="$DOCKER_ORG/$(dirname $DOCK):$(readlink $DOCK)"
-  echo docker pull "$DOCKER_IMAGE_ORIG"
-  echo docker tag "$DOCKER_IMAGE_ORIG" "$DOCKER_IMAGE"
-done < <(git diff --name-only $TRAVIS_COMMIT_RANGE | grep / | cut -d/ -f1,2 | sort -u)
+if [[ $DOCKER_PUSH ]]; then
+  while read DOCK; do
+    # Repush all symlinks that changed
+    [[ -L $DOCK ]] || continue
+    DOCKER_IMAGE="$DOCKER_ORG/${DOCK//\//:}"
+    DOCKER_IMAGE_ORIG="$DOCKER_ORG/$(dirname $DOCK):$(readlink $DOCK)"
+    echo "Retagging Docker image $DOCKER_IMAGE -> $DOCKER_IMAGE_ORIG"
+    docker pull "$DOCKER_IMAGE_ORIG"
+    docker tag "$DOCKER_IMAGE_ORIG" "$DOCKER_IMAGE"
+  done < <(git diff --name-only $TRAVIS_COMMIT_RANGE | grep / | cut -d/ -f1,2 | sort -u)
+fi
 
 echo failing deliberately
 false
