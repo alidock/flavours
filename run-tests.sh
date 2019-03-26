@@ -1,18 +1,20 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 set -o pipefail
 cd "$(dirname "$0")"
 
+DOCKER_ORG=alipier
+
 if [[ $TRAVIS_PULL_REQUEST != false && $TRAVIS_COMMIT_RANGE ]]; then
   # We are testing a Pull Request: do not push
-  DOCKER_ORG=
+  DOCKER_PUSH=
 elif [[ $TRAVIS_PULL_REQUEST == false && $TRAVIS_BRANCH == master ]]; then
   # We are testing the master branch (e.g. when PR is merged)
-  DOCKER_ORG=alipier
+  DOCKER_PUSH=1
 fi
 
 # Load Docker Hub user and password
-if [[ $DOCKER_ORG ]]; then
+if [[ $DOCKER_PUSH ]]; then
   docker login -u "$(eval echo \$DOCKER_USER_${DOCKER_ORG})" \
                -p "$(eval echo \$DOCKER_PASS_${DOCKER_ORG})"
 fi
@@ -24,7 +26,7 @@ while read DOCK; do
   pushd "$DOCK"
     DOCKER_IMAGE="$DOCKER_ORG/${DOCK//\//:}"
     echo docker build . -t "$DOCKER_IMAGE"
-    if [[ $DOCKER_ORG ]]; then
+    if [[ $DOCKER_PUSH ]]; then
       echo docker push "$DOCKER_IMAGE"
     fi
   popd
