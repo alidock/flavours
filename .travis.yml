@@ -3,9 +3,7 @@ language: minimal
 services:
   - docker
 script: |
-  set -e
-  set -o pipefail
-  ci/run-tests.sh
+  ./run-tests.sh
 branches:
   only:
     - master
