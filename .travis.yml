@@ -1,0 +1,12 @@
+dist: trusty
+language: minimal
+services:
+  - docker
+script: |
+  set -e
+  set -o pipefail
+  ci/run-tests.sh
+branches:
+  only:
+    - master
+    - /^v\d+\.\d+(\.\d+)?(-rc\d+)?$/
