@@ -19,8 +19,12 @@ if [[ $DOCKER_PUSH ]]; then
                -p "$(eval echo \$DOCKER_PASS_${DOCKER_ORG})"
 fi
 
-# Only rebuild containers that changed (TODO: now only works in PRs)
-while read DOCK; do
+# Gather list of what's changed
+RANGE=$TRAVIS_COMMIT_RANGE
+[[ $RANGE ]] || RANGE="HEAD^"
+CHANGED=( $(git diff --name-only $RANGE | grep / | cut -d/ -f1,2 | sort -u) )
+
+for DOCK in "${CHANGED[@]}"; do
   # Rebuild all containers that changed
   [[ -d $DOCK && ! -L $DOCK ]] || continue
   pushd "$DOCK" &> /dev/null
@@ -31,10 +35,10 @@ while read DOCK; do
       docker push "$DOCKER_IMAGE"
     fi
   popd &> /dev/null
-done < <(git diff --name-only $TRAVIS_COMMIT_RANGE | grep / | cut -d/ -f1,2 | sort -u)
+done
 
 if [[ $DOCKER_PUSH ]]; then
-  while read DOCK; do
+  for DOCK in "${CHANGED[@]}"; do
     # Repush all symlinks that changed
     [[ -L $DOCK ]] || continue
     DOCKER_IMAGE="$DOCKER_ORG/${DOCK//\//:}"
@@ -42,8 +46,5 @@ if [[ $DOCKER_PUSH ]]; then
     echo "Retagging Docker image $DOCKER_IMAGE -> $DOCKER_IMAGE_ORIG"
     docker pull "$DOCKER_IMAGE_ORIG"
     docker tag "$DOCKER_IMAGE_ORIG" "$DOCKER_IMAGE"
-  done < <(git diff --name-only $TRAVIS_COMMIT_RANGE | grep / | cut -d/ -f1,2 | sort -u)
+  done
 fi
-
-echo failing deliberately
-false
