@@ -21,8 +21,18 @@ DOCKER_USER=$(eval echo \$DOCKER_USER_${DOCKER_ORG})
 DOCKER_PASS=$(eval echo \$DOCKER_PASS_${DOCKER_ORG})
 
 # Only rebuild containers that changed (TODO: now only works in PRs)
-git diff --name-only $TRAVIS_COMMIT_RANGE
+while read DOCK; do
+  # Rebuild all containers that changed
+  [[ -d $DOCK && ! -L $DOCK ]] || continue
+  echo "I would rebuild container image $DOCK"
+done < <(git diff --name-only $TRAVIS_COMMIT_RANGE | grep / | cut -d/ -f1,2 | sort -u)
 
+while read DOCK; do
+  # Repush all symlinks that changed
+  [[ -L $DOCK ]] || continue
+  DOCK_ORIG="$(dirname $DOCK)/$(readlink $DOCK)"
+  echo "I would relink container image $DOCK (points to $DOCK_ORIG)"
+done < <(git diff --name-only $TRAVIS_COMMIT_RANGE | grep / | cut -d/ -f1,2 | sort -u)
 
 echo exit here just for fun
 false
