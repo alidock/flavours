@@ -1,6 +1,6 @@
-FROM alisw/alidock:latest
+FROM alipier/alidock:latest
 
-LABEL MAINTAINER "Matteo Concas mconcas@cern.ch"
+LABEL maintainer="Matteo Concas <mconcas@cern.ch>"
 
 # https://gitlab.com/nvidia/cuda/blob/centos7/10.1/base/Dockerfile
 RUN NVIDIA_GPGKEY_SUM=d1be581509378368edeec8c1eb2958702feedf3bc3d17011adbf24efacce4ab5 && \
@@ -46,4 +46,3 @@ RUN yum install -y \
     rm -rf /var/cache/yum/*
 
 ENV LIBRARY_PATH /usr/local/cuda/lib64/stubs
-
