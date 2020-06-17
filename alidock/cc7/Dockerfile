@@ -1,5 +1,5 @@
 FROM alisw/slc7-builder
-LABEL maintainer="Dario Berzano <dario.berzano@gmail.com>"
+LABEL maintainer="Matteo Concas <mconcas@cern.ch>"
 ADD alonid-llvm-3.9.0.repo /etc/yum.repos.d/alonid-llvm-3.9.0.repo
 ADD xpra.repo /etc/yum.repos.d/xpra.repo
 RUN rpmdb --rebuilddb && yum clean all && rm -rf /var/cache/yum && \
