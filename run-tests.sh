@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 set -o pipefail
 cd "$(dirname "$0")"
@@ -53,6 +53,8 @@ if [[ $DOCKER_PUSH ]]; then
                  -p "$(eval echo \$DOCKER_PASS_${DOCKER_ORG})"
   fold_end
 fi
+
+docker info
 
 # Gather list of what's changed
 fold_start list_changed "List of changed files and related symlinks"

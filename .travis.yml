@@ -5,7 +5,7 @@ services:
 python:
   - "3.7-dev"
 install:
-  - pip install alidock
+  - pip install git+https://github.com/alidock/alidock.git@master
 before_script: |
   export -f travis_nanoseconds
   export -f travis_fold
